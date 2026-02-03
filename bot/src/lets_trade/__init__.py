@@ -1,0 +1,3 @@
+"""letsTrade - LS증권 API 기반 자동매매 프로그램"""
+
+__version__ = "0.1.0"
