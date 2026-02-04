@@ -7,16 +7,14 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 import uvicorn
-from fastapi import FastAPI
 from lets_trade import __version__
+from lets_trade.api_server import create_app
 
-app = FastAPI(
-    title="letsTrade",
-    description="LS증권 API 기반 주식 자동매매 프로그램",
-    version=__version__,
-)
+# API 서버 앱 생성
+app = create_app()
 
 
+# 기존 루트 엔드포인트 유지 (하위 호환성)
 @app.get("/")
 async def root():
     """헬스체크 및 기본 정보"""
@@ -24,19 +22,9 @@ async def root():
         "name": "letsTrade",
         "version": __version__,
         "status": "running",
+        "docs": "/docs",
+        "api": "/api/v1",
     }
-
-
-@app.get("/health")
-async def health():
-    """헬스체크 엔드포인트"""
-    return {"status": "healthy"}
-
-
-# TODO: 추가 API 엔드포인트
-# - /api/trades: 거래 내역
-# - /api/portfolio: 포트폴리오 현황
-# - /api/strategies: 전략 설정
 
 
 if __name__ == "__main__":
