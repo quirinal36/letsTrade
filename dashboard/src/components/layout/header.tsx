@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 
 interface HeaderProps {
   user: {
@@ -29,6 +30,7 @@ export function Header({ user }: HeaderProps) {
         <div className="flex items-center gap-4">
           {user && (
             <>
+              <NotificationBell />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user.email}
               </span>
