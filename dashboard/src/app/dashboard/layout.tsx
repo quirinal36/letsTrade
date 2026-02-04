@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { TradeNotifications } from "@/components/notifications/trade-toast";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +23,7 @@ export default async function DashboardLayout({
       <main className="ml-64 pt-16">
         <div className="p-6">{children}</div>
       </main>
+      <TradeNotifications />
     </div>
   );
 }

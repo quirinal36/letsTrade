@@ -1,5 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LiveStats } from "@/components/dashboard/live-stats";
+import { RecentTrades } from "@/components/dashboard/recent-trades";
+
+interface Trade {
+  id: number;
+  order_no: string;
+  stock_code: string;
+  stock_name: string;
+  order_type: "buy" | "sell";
+  status: string;
+  quantity: number;
+  price: number;
+  executed_quantity: number;
+  executed_price: number | null;
+  executed_at: string | null;
+  created_at: string;
+}
 
 async function getPortfolioSummary() {
   const supabase = await createClient();
@@ -26,38 +43,36 @@ async function getPortfolioSummary() {
   };
 }
 
-export default async function DashboardPage() {
-  const summary = await getPortfolioSummary();
+async function getRecentTrades(): Promise<Trade[]> {
+  const supabase = await createClient();
 
-  const stats = [
-    {
-      title: "총 자산",
-      value: `₩${summary.totalValue.toLocaleString()}`,
-      icon: "💰",
-    },
-    {
-      title: "총 손익",
-      value: `${summary.totalProfit >= 0 ? "+" : ""}₩${summary.totalProfit.toLocaleString()}`,
-      icon: summary.totalProfit >= 0 ? "📈" : "📉",
-      color: summary.totalProfit >= 0 ? "text-green-600" : "text-red-600",
-    },
-    {
-      title: "수익률",
-      value: `${summary.profitRate >= 0 ? "+" : ""}${summary.profitRate.toFixed(2)}%`,
-      icon: "📊",
-      color: summary.profitRate >= 0 ? "text-green-600" : "text-red-600",
-    },
-    {
-      title: "보유 종목",
-      value: `${summary.positionCount}개`,
-      icon: "📋",
-    },
-    {
-      title: "오늘 거래",
-      value: `${summary.todayTradeCount}건`,
-      icon: "🔄",
-    },
-  ];
+  const { data } = await supabase
+    .from("trades")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  return data || [];
+}
+
+async function getActiveStrategies() {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("strategies")
+    .select("*")
+    .eq("is_active", true)
+    .limit(5);
+
+  return data || [];
+}
+
+export default async function DashboardPage() {
+  const [summary, recentTrades, activeStrategies] = await Promise.all([
+    getPortfolioSummary(),
+    getRecentTrades(),
+    getActiveStrategies(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -68,42 +83,39 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {stat.title}
-              </CardTitle>
-              <span className="text-xl">{stat.icon}</span>
-            </CardHeader>
-            <CardContent>
-              <p className={`text-2xl font-bold ${stat.color || ""}`}>
-                {stat.value}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Live Stats Grid */}
+      <LiveStats initialStats={summary} />
 
-      {/* Placeholder sections */}
+      {/* Recent Trades & Active Strategies */}
       <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>최근 거래</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-500">거래 내역이 없습니다.</p>
-          </CardContent>
-        </Card>
+        <RecentTrades initialTrades={recentTrades} />
 
         <Card>
           <CardHeader>
             <CardTitle>활성 전략</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-500">활성화된 전략이 없습니다.</p>
+            {activeStrategies.length === 0 ? (
+              <p className="text-sm text-gray-500">활성화된 전략이 없습니다.</p>
+            ) : (
+              <div className="space-y-3">
+                {activeStrategies.map((strategy: { id: number; name: string; strategy_type: string }) => (
+                  <div
+                    key={strategy.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-white dark:bg-gray-800"
+                  >
+                    <div>
+                      <p className="font-medium">{strategy.name}</p>
+                      <p className="text-xs text-gray-500">{strategy.strategy_type}</p>
+                    </div>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
