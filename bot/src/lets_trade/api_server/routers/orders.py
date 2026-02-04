@@ -6,6 +6,7 @@ from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth import User, get_current_user
 from ..dependencies import get_order_api, get_db, get_supabase_client
 from ..schemas.order import (
     BuyOrderRequest,
@@ -69,10 +70,11 @@ def _create_trade_record(
 @router.post("/buy", response_model=OrderResultResponse)
 async def buy_order(
     request: BuyOrderRequest,
+    current_user: User = Depends(get_current_user),
     order_api: OrderApi = Depends(get_order_api),
     db: Session = Depends(get_db),
 ):
-    """매수 주문"""
+    """매수 주문 (인증 필요)"""
     try:
         # 주문 유형 결정
         order_type = OrderType.MARKET if request.order_type == "market" else OrderType.LIMIT
@@ -139,10 +141,11 @@ async def buy_order(
 @router.post("/sell", response_model=OrderResultResponse)
 async def sell_order(
     request: SellOrderRequest,
+    current_user: User = Depends(get_current_user),
     order_api: OrderApi = Depends(get_order_api),
     db: Session = Depends(get_db),
 ):
-    """매도 주문"""
+    """매도 주문 (인증 필요)"""
     try:
         order_type = OrderType.MARKET if request.order_type == "market" else OrderType.LIMIT
 
@@ -208,9 +211,10 @@ async def sell_order(
 async def modify_order(
     order_no: str,
     request: ModifyOrderRequest,
+    current_user: User = Depends(get_current_user),
     order_api: OrderApi = Depends(get_order_api),
 ):
-    """주문 정정"""
+    """주문 정정 (인증 필요)"""
     try:
         result = order_api.modify(
             order_no=order_no,
@@ -243,9 +247,10 @@ async def modify_order(
 async def cancel_order(
     order_no: str,
     request: CancelOrderRequest,
+    current_user: User = Depends(get_current_user),
     order_api: OrderApi = Depends(get_order_api),
 ):
-    """주문 취소"""
+    """주문 취소 (인증 필요)"""
     try:
         result = order_api.cancel(
             order_no=order_no,
@@ -274,8 +279,11 @@ async def cancel_order(
 
 
 @router.get("", response_model=BrokerOrderListResponse)
-async def get_broker_orders(order_api: OrderApi = Depends(get_order_api)):
-    """오늘 브로커 주문 내역 조회"""
+async def get_broker_orders(
+    current_user: User = Depends(get_current_user),
+    order_api: OrderApi = Depends(get_order_api),
+):
+    """오늘 브로커 주문 내역 조회 (인증 필요)"""
     try:
         orders = order_api.get_orders()
 

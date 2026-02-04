@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
+from ..auth import User, get_current_user
 from ..dependencies import get_db
 from ..schemas.trade import TradeSchema, TradeListResponse, TradeSummary
 from ..schemas.common import ErrorCode
@@ -18,6 +19,7 @@ router = APIRouter()
 
 @router.get("", response_model=TradeListResponse)
 async def get_trades(
+    current_user: User = Depends(get_current_user),
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     status: Optional[str] = Query(default=None),
@@ -85,6 +87,7 @@ async def get_trades(
 
 @router.get("/today", response_model=TradeListResponse)
 async def get_today_trades(
+    current_user: User = Depends(get_current_user),
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
@@ -156,7 +159,11 @@ async def get_today_trades(
 
 
 @router.get("/{trade_id}", response_model=TradeSchema)
-async def get_trade(trade_id: int, db: Session = Depends(get_db)):
+async def get_trade(
+    trade_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """거래 상세 조회"""
     trade = db.query(Trade).filter(Trade.id == trade_id).first()
 

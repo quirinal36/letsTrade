@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth import User, get_current_user
 from ..dependencies import get_db, get_supabase_client
 from ..schemas.strategy import (
     StrategySchema,
@@ -23,6 +24,7 @@ router = APIRouter()
 
 @router.get("", response_model=StrategyListResponse)
 async def get_strategies(
+    current_user: User = Depends(get_current_user),
     limit: int = Query(default=50, le=100),
     offset: int = Query(default=0, ge=0),
     is_active: Optional[bool] = Query(default=None),
@@ -55,7 +57,11 @@ async def get_strategies(
 
 
 @router.get("/{strategy_id}", response_model=StrategySchema)
-async def get_strategy(strategy_id: int, db: Session = Depends(get_db)):
+async def get_strategy(
+    strategy_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """전략 상세 조회"""
     strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
 
@@ -74,6 +80,7 @@ async def get_strategy(strategy_id: int, db: Session = Depends(get_db)):
 @router.post("", response_model=StrategySchema)
 async def create_strategy(
     request: StrategyCreateRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """전략 생성"""
@@ -120,6 +127,7 @@ async def create_strategy(
 async def update_strategy(
     strategy_id: int,
     request: StrategyUpdateRequest,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
     """전략 수정"""
@@ -166,7 +174,11 @@ async def update_strategy(
 
 
 @router.patch("/{strategy_id}/toggle", response_model=StrategyToggleResponse)
-async def toggle_strategy(strategy_id: int, db: Session = Depends(get_db)):
+async def toggle_strategy(
+    strategy_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """전략 활성화/비활성화 토글"""
     strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
 
@@ -210,7 +222,11 @@ async def toggle_strategy(strategy_id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{strategy_id}")
-async def delete_strategy(strategy_id: int, db: Session = Depends(get_db)):
+async def delete_strategy(
+    strategy_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """전략 삭제"""
     strategy = db.query(Strategy).filter(Strategy.id == strategy_id).first()
 

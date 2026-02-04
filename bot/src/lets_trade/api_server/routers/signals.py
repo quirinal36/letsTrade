@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..auth import User, get_current_user
 from ..dependencies import get_db
 from ..schemas.signal import SignalSchema, SignalListResponse, SignalStatsResponse
 from ...models import Signal, Strategy
@@ -17,6 +18,7 @@ router = APIRouter()
 
 @router.get("", response_model=SignalListResponse)
 async def get_signals(
+    current_user: User = Depends(get_current_user),
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     strategy_id: Optional[int] = Query(default=None),
@@ -63,6 +65,7 @@ async def get_signals(
 
 @router.get("/stats", response_model=list[SignalStatsResponse])
 async def get_signal_stats(
+    current_user: User = Depends(get_current_user),
     period_days: int = Query(default=30, ge=1, le=365),
     db: Session = Depends(get_db),
 ):

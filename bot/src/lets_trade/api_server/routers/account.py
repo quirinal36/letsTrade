@@ -4,6 +4,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from ..auth import User, get_current_user
 from ..dependencies import get_account_api
 from ..schemas.account import BalanceResponse, PositionsListResponse, PositionSchema
 from ..schemas.common import ErrorCode
@@ -13,8 +14,11 @@ router = APIRouter()
 
 
 @router.get("/balance", response_model=BalanceResponse)
-async def get_balance(account_api: AccountApi = Depends(get_account_api)):
-    """계좌 잔고 조회"""
+async def get_balance(
+    current_user: User = Depends(get_current_user),
+    account_api: AccountApi = Depends(get_account_api),
+):
+    """계좌 잔고 조회 (인증 필요)"""
     try:
         balance = account_api.get_balance()
 
@@ -43,8 +47,11 @@ async def get_balance(account_api: AccountApi = Depends(get_account_api)):
 
 
 @router.get("/positions", response_model=PositionsListResponse)
-async def get_positions(account_api: AccountApi = Depends(get_account_api)):
-    """보유 종목 조회"""
+async def get_positions(
+    current_user: User = Depends(get_current_user),
+    account_api: AccountApi = Depends(get_account_api),
+):
+    """보유 종목 조회 (인증 필요)"""
     try:
         positions = account_api.get_positions()
 

@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from ..auth import User, get_current_user
 from ..dependencies import get_db, get_supabase_client, get_account_api
 from ..schemas.portfolio import (
     PortfolioPositionSchema,
@@ -24,6 +25,7 @@ router = APIRouter()
 
 @router.get("", response_model=PortfolioListResponse)
 async def get_portfolio(
+    current_user: User = Depends(get_current_user),
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     order_by: str = Query(default="market_value"),
@@ -52,7 +54,10 @@ async def get_portfolio(
 
 
 @router.get("/summary", response_model=PortfolioSummaryResponse)
-async def get_portfolio_summary(db: Session = Depends(get_db)):
+async def get_portfolio_summary(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """포트폴리오 요약 조회"""
     # 집계 쿼리
     result = db.query(
@@ -92,7 +97,10 @@ async def get_portfolio_summary(db: Session = Depends(get_db)):
 
 
 @router.post("/sync", response_model=SyncResultResponse)
-async def sync_portfolio(db: Session = Depends(get_db)):
+async def sync_portfolio(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """포트폴리오 동기화 (브로커 → DB → Supabase)"""
     try:
         account_api = get_account_api()
