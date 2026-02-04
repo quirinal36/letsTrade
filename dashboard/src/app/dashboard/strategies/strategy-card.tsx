@@ -31,12 +31,12 @@ export function StrategyCard({ strategy, signalCount }: StrategyCardProps) {
   const [isActive, setIsActive] = useState(strategy.is_active);
   const [isUpdating, setIsUpdating] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   const handleToggle = async () => {
     setIsUpdating(true);
     const newStatus = !isActive;
 
+    const supabase = createClient();
     const { error } = await supabase
       .from("strategies")
       .update({ is_active: newStatus })
