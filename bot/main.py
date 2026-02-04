@@ -1,6 +1,11 @@
 """letsTrade - Railway 배포용 진입점"""
 
 import os
+import sys
+
+# src 폴더를 모듈 경로에 추가
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+
 from lets_trade import __version__
 
 
