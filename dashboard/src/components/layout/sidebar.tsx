@@ -8,6 +8,7 @@ const navigation = [
   { name: "대시보드", href: "/dashboard", icon: "📊" },
   { name: "포트폴리오", href: "/dashboard/portfolio", icon: "💼" },
   { name: "거래내역", href: "/dashboard/trades", icon: "📋" },
+  { name: "수익분석", href: "/dashboard/analytics", icon: "📈" },
   { name: "전략관리", href: "/dashboard/strategies", icon: "🎯" },
   { name: "설정", href: "/dashboard/settings", icon: "⚙️" },
 ];
