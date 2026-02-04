@@ -78,3 +78,5 @@ Thumbs.db
 *.key
 secrets/
 credentials/
+start.sh
+.mcp.json
